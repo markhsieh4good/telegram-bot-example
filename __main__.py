@@ -8,9 +8,9 @@ import os, signal
 from threading import Thread
 from threading import Event
 
-from myqueue import *
-from monitor import *
-from action import *
+from common.myqueue import *
+from common.sendmessage import *
+from TelegramRobot import *
 
 logging.basicConfig(
                     level=logging.INFO,
