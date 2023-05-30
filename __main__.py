@@ -43,61 +43,51 @@ def signal_handler(signum, frame):
         print('???')
     
 if __name__ == "__main__":
-    logger.info('Wellcome into the remote control service.')
+   logger.info('Wellcome into the remote control service.')
+
     # global var.
-    global MonitorRobot
-    global WorkerRobot
-    global StopSys
+    global TelegramRobot
+    
+    # Telegram Robot setting
+    TelegramRobot = MyTelegramSrv(logger, stop_self)
+    BtcRobot = MyBtcSrv(logger)
+    SendMessager = MySendTools(logger)
 
     # Running server
     # app.run(debug=True)
     req_q = MyQueue(logger, size=30, high_permission_has=0.25)
     res_q = MyQueue(logger, size=30, high_permission_has=0) # result order is base on request.
-    
-    # Monitor and create event
-    
-    # Listen and act
 
     # queue link with ...
-    # monitor bot [push]--(request queue)-->[pop] action robot
-    # action bot [push]--(result queue)-->[pop] monitor bot
-    MonitorRobotStopEvent = Event()
-    MonitorRobot = MonitorSrv(stop_system=MonitorRobotStopEvent, target_name="binance-bot", queue_req=req_q, queue_res=res_q)
-    
-    WorkerRobotStopEvent = Event()
-    WorkerRobot = WorkerSrv(stop_system=MonitorRobotStopEvent, target_name="binance-bot", queue_req=req_q, queue_res=res_q)
+    # telegram bot [push]--(request queue)-->[pop] btc robot
+    # btc robot [push]--(result queue)-->[pop] telegram bot
 
-    # MonitorRobot listeners
-    MonitorRobotThread = Thread(
-        target=MonitorRobot.run, 
-        args=(), 
-        name="MonitorRobotCommunicateThread")
-    MonitorRobotThread.start()
-    
-    WorkerRobotThread = Thread(
-        target=WorkerRobot.run, 
-        args=(), 
-        name="WorkerRobotCommunicateThread")
-    WorkerRobotThread.start()
-    
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
-    signal.signal(signal.SIGABRT, signal_handler)
-    # signal.signal(signal.SIGSTOP, signal_handler)
-    b_run = True
-    StopSys = False
-    while b_run is True:
-        if StopSys is True:
-            b_run = False
-        else:
-            time.sleep(1)
-    
-    MonitorRobotStopEvent.set()
-    MonitorRobotThread.join()
+    # Btc-Robot listener
+    BtcRobotStopEvent = Event()
+    BtcRobotThread = Thread(
+        target=BtcRobot.run, 
+        args=(BtcRobotStopEvent, req_q, res_q), 
+        name="BtcRobotCommunicateThread")
+    BtcRobotThread.start()
 
-    WorkerRobotStopEvent.set()
-    WorkerRobotThread.join()
-    
+    # Send Message listener
+    SendMessageStopEvent = Event()
+    SendMessageThread = Thread(
+        target=SendMessager.run, 
+        args=(SendMessageStopEvent, req_q, res_q, cb), 
+        name="BtcRobotCommunicateThread")
+    SendMessageThread.start()
+
+    TelegramRobot.freeAllUpdates()
+    TelegramRobot.start(req_q, res_q) # until receive system signal.
+    TelegramRobot.release()
+
+    SendMessageStopEvent.set()
+    SendMessageThread.join()
+
+    BtcRobotStopEvent.set()
+    BtcRobotThread.join()
+
     req_q.clean()
     res_q.clean()
     logger.info('Thanks for using, bye.')
