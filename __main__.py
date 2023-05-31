@@ -9,8 +9,10 @@ from threading import Thread
 from threading import Event
 
 from common.myqueue import *
-from common.sendmessage import *
-from TelegramRobot import *
+
+from mod.SendMessage import *
+from mod.TelegramRobot import *
+from mod.HostMonitor import *
 
 logging.basicConfig(
                     level=logging.INFO,
