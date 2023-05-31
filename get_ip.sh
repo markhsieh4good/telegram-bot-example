@@ -22,7 +22,7 @@ if [ "${_DYNAMICIP}" == "127.0.0.1" ]; then
   echo "I can not find any avaliable ip address from enp... eth... ppp..."
   exit 1
 else
-  _EXTERNALIP=`curl ifconfig.me`
+  _EXTERNALIP=`curl ifconfig.me 2>/dev/null 3>&1`
 fi
 
 echo "internal_ip=${_DYNAMICIP}"

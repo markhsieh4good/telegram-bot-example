@@ -186,8 +186,9 @@ class MyHostSrv(object):
         else:
             return_msg = returned_value.stdout
             if returned_value.returncode > 0:
-                message.append("{}:".format(returned_value.returncode))
+                message.append("{}".format(returned_value.returncode))
                 message.append("{}".format(returned_value.stderr))
+                message.append("{}".format(return_msg))
             else:
                 message.append("0: success")
 
@@ -286,7 +287,7 @@ class MyHostSrv(object):
             # print("os return: {}".format(returned_value))
             return_msg.append(returned_value.stdout)
             # print("system call return: {}".format(return_msg))
-            message.append("{}:".format(returned_value.returncode))
+            message.append("{}".format(returned_value.returncode))
             message.append("{}".format(returned_value.stderr))
 
         # last order
@@ -335,7 +336,7 @@ class MyHostSrv(object):
             message.append("system call [{}] fail.".format(command))
         else:
             return_msg.append(returned_value.stdout)
-            message.append("{}:".format(returned_value.returncode))
+            message.append("{}".format(returned_value.returncode))
             message.append("{}".format(returned_value.stderr))
 
         l_feedback = {
