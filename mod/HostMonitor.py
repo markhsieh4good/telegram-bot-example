@@ -162,7 +162,7 @@ class MyHostSrv(object):
         self.__system_info.update({"disk": disk_info})
 
         # command
-        command = "bash /usr/local/bin/get_ip "
+        command = "bash /usr/local/bin/get_ip 3>&1 "
         message = []
         result = "success"
         returned_value = {}
@@ -186,8 +186,11 @@ class MyHostSrv(object):
             message.append("system call [{}] fail.".format(command))
         else:
             return_msg = returned_value.stdout
-            message.append("{}:".format(returned_value.returncode))
-            message.append("{}".format(returned_value.stderr))
+            if returned_value.returncode > 0:
+                message.append("{}:".format(returned_value.returncode))
+                message.append("{}".format(returned_value.stderr))
+            else:
+                message.append("0: success")
 
         l_internal_ip = [ False, "None" ]
         l_external_ip = [ False, "None" ]
