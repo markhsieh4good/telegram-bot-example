@@ -5,6 +5,7 @@ import sys
 import logging
 import os, signal
 import datetime
+import yaml
 
 from threading import Thread
 from threading import Event
@@ -14,18 +15,6 @@ from common.myqueue import *
 from mod.SendMessage import *
 from mod.TelegramRobot import *
 from mod.HostMonitor import *
-
-logging.basicConfig(
-                    level=logging.INFO,
-                    format='%(name)s - %(levelname)s - %(message)s',
-                            # datefmt="%m/%d/%Y %I:%M:%S %p %Z",
-                    # Send to file and ttyS0...
-                    handlers=[
-                        # logging.FileHandler("{0}/{1}.log".format(logPath, fileName)),
-                        logging.StreamHandler(sys.stdout)
-                    ]
-        )
-logger = logging.getLogger(__name__)
 
 logging.basicConfig(
                     level=logging.INFO,
@@ -76,11 +65,18 @@ def signal_handler(signum, frame):
 if __name__ == "__main__":
     logger.info('Wellcome into the remote control service.')
 
+    current_working_directory = os.getcwd()
+    print('working folder is:' + current_working_directory)
+
+    # Initial all option from configuration file (*.yaml)
+    with open("config.yaml", "r", encoding="utf-8") as f:
+        yaml_data = yaml.safe_load(f)
+
     # global var.
     global TelegramRobot
     
     # Telegram Robot setting
-    TelegramRobot = MyTelegramSrv(logger, isStopSys)
+    TelegramRobot = MyTelegramSrv(logger, isStopSys, yaml_data)
     K8sHost = MyBtcSrv(logger)
     SendMessager = MySendTools(logger)
 

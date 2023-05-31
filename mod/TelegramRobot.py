@@ -24,43 +24,42 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 # import configparser
 # config = configparser.ConfigParser()
 # config.read('config.ini')
-import yaml
+
 import json
 
 import requests
 import time
 
-# Initial all option from configuration file (*.yaml)
-with open("config.yaml", "r", encoding="utf-8") as f:
-    yaml_data = yaml.safe_load(f)
-    BOT_TOKEN = yaml_data['bot_token']
-    REFRESH_SECONDS = yaml_data['refresh_seconds']
-    CHAR_ID = yaml_data['group_chat_id']
-    WHISP_ID = yaml_data['whisp_chat_id']
-    VERSION = yaml_data['version']
-    TIMEZONE = yaml_data['timezone']
-
 # for conversation handler, linking number
 BINANCE, TELEGRAM, AREA, MARKET = range(4)
 
 class MyTelegramSrv(object):
-    def __init__(self, logger, is_stop_system) -> None:
+    def __init__(self, logger, is_stop_system, configuration) -> None:
         super().__init__()
-        header = {"Authorization": "Telegram Bot Hock: {}".format(BOT_TOKEN)}
+
+        # parse to local value
+        self.__bot_token = configuration['bot_token']
+        self.__refresh_seconds = configuration['refresh_seconds']
+        self.__char_id = configuration['group_chat_id']
+        self.__whisp_id = configuration['whisp_chat_id']
+        self.__version = configuration['version']
+        self.__timezone = configuration['timezone']
+
+        header = {"Authorization": "Telegram Bot Hock: {}".format(self.__bot_token)}
         self.__queue_request = None
         self.__queue_result = None
         self.__chatpool = []
 
-        if CHAR_ID == "" or CHAR_ID is None:
+        if self.__char_id == "" or self.__char_id is None:
             pass
         else:
-            self.__chatpool.append(CHAR_ID)
-        if WHISP_ID == "" or WHISP_ID is None:
+            self.__chatpool.append(self.__char_id)
+        if self.__whisp_id == "" or self.__whisp_id is None:
             pass
         else:
-            self.__chatpool.append(WHISP_ID)
+            self.__chatpool.append(self.__whisp_id)
 
-        self.__updater = Updater(BOT_TOKEN, use_context=True)
+        self.__updater = Updater(self.__bot_token, use_context=True)
         self.__bot = self.__updater.bot
         self.__updater.dispatcher.add_handler(handler=CommandHandler('hello', self.__hello, pass_update_queue=True, pass_job_queue=True, pass_user_data=True), group=0)
         self.__updater.dispatcher.add_handler(handler=CommandHandler('help', self.__help, pass_update_queue=True, pass_job_queue=True, pass_user_data=True), group=0)
@@ -100,11 +99,11 @@ class MyTelegramSrv(object):
         self.logger.info("{} already loaded finish.".format(__name__))
 
     def __information(self):
-        manualTimezone = pytz.timezone(TIMEZONE)
+        manualTimezone = pytz.timezone(self.__timezone)
         l_date = datetime.now(manualTimezone) 
 
         self.__sendMessageToAllChat("Hello, this is telegram bot. \n"
-            + "\t version: {}\n ".format(VERSION)
+            + "\t version: {}\n ".format(self.__version)
             + "\t clock: {}".format(l_date))
 
     def start(self, queue_req, queue_res):
@@ -117,7 +116,7 @@ class MyTelegramSrv(object):
         self.__freeAllUpdates() # clean all message from telegram cloud queue
 
         self.__updater.start_polling(
-            poll_interval=float(REFRESH_SECONDS), 
+            poll_interval=float(self.__refresh_seconds), 
             timeout=10)
         self.__updater.idle()
 
@@ -174,9 +173,9 @@ class MyTelegramSrv(object):
                 'Content-Type': 'application/json',
 
             }
-            # url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={chat_id}&text={message}"
+            # url = f"https://api.telegram.org/bot{self.__bot_token}/sendMessage?chat_id={chat_id}&text={message}"
             # lres = requests.get(url).json()
-            url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+            url = f"https://api.telegram.org/bot{self.__bot_token}/sendMessage"
             payload = {
                 "chat_id": chat_id,
                 "text": message
@@ -198,7 +197,7 @@ class MyTelegramSrv(object):
             headers = {
                 'Content-Type': 'application/json',
             }
-            url = f'https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto'
+            url = f'https://api.telegram.org/bot{self.__bot_token}/sendPhoto'
             payload = {
                 'chat_id': chat_id,
                 'photo': path,
@@ -219,7 +218,7 @@ class MyTelegramSrv(object):
             headers = {
                 'Content-Type': 'application/json',
             }
-            url = f'https://api.telegram.org/bot{BOT_TOKEN}/sendAudio'
+            url = f'https://api.telegram.org/bot{self.__bot_token}/sendAudio'
             payload = {
                 'chat_id': chat_id,
                 'audio': path
@@ -239,7 +238,7 @@ class MyTelegramSrv(object):
             headers = {
                 'Content-Type': 'application/json',
             }
-            url = f'https://api.telegram.org/bot{BOT_TOKEN}/sendVideo'
+            url = f'https://api.telegram.org/bot{self.__bot_token}/sendVideo'
             payload = {
                 'chat_id': chat_id,
                 'video': path
@@ -262,9 +261,9 @@ class MyTelegramSrv(object):
                 'Content-Type': 'application/json',
 
             }
-            url = f"https://api.telegram.org/bot{BOT_TOKEN}/getUpdates"
+            url = f"https://api.telegram.org/bot{self.__bot_token}/getUpdates"
             lres = requests.get(url).json()
-            # url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+            # url = f"https://api.telegram.org/bot{self.__bot_token}/sendMessage"
             # payload = {
             #     "chat_id": chat_id,
             #     "text": message
@@ -282,7 +281,7 @@ class MyTelegramSrv(object):
 
     # async def __sendMsgByApplicationBuilder(self, chat_id, message):
     #     # ref.: https://stackoverflow.com/a/74195448
-    #     application = ApplicationBuilder().token(BOT_TOKEN).build()
+    #     application = ApplicationBuilder().token(self.__bot_token).build()
     #     await application.bot.sendMessage(chat_id=chat_id, text=message)
 
     # def __sendMessageByAppBuilder(self, chat_id, message):
@@ -391,7 +390,7 @@ class MyTelegramSrv(object):
                 "chat_id": chat_id,
                 "data": None,
                 "timestamp": l_currntT,
-                "timezone": TIMEZONE
+                "timezone": self.__timezone
             }
             # response message after we figure out the requestion
             self.__pushToQueueReq(l_dict, important=False)
@@ -409,7 +408,7 @@ class MyTelegramSrv(object):
                 "chat_id": chat_id,
                 "data": None,
                 "timestamp": l_currntT,
-                "timezone": TIMEZONE
+                "timezone": self.__timezone
             }
             # response message after we figure out the requestion
             self.__pushToQueueReq(l_dict, important=True)
@@ -427,7 +426,7 @@ class MyTelegramSrv(object):
                 "chat_id": chat_id,
                 "data": None,
                 "timestamp": l_currntT,
-                "timezone": TIMEZONE
+                "timezone": self.__timezone
             }
             # response message after we figure out the requestion
             self.__pushToQueueReq(l_dict, important=True)
@@ -518,7 +517,7 @@ class MyTelegramSrv(object):
                     "chat_id": chat_id,
                     "data": None,
                     "timestamp": l_currntT,
-                    "timezone": TIMEZONE
+                    "timezone": self.__timezone
                 }
                 # response message after we figure out the requestion
                 self.__pushToQueueReq(l_dict, important=False)
@@ -540,7 +539,7 @@ class MyTelegramSrv(object):
                     "chat_id": chat_id,
                     "data": args_word,
                     "timestamp": l_currntT,
-                    "timezone": TIMEZONE
+                    "timezone": self.__timezone
                 }
                 # response message after we figure out the requestion
                 self.__pushToQueueReq(l_dict, important=False)
@@ -555,7 +554,7 @@ class MyTelegramSrv(object):
         # l_currntT = round(time.time()*100)*0.01
         chat_id = str(update.message.chat_id)
         count = self.__chatpool.count(chat_id)
-        manualTimezone = pytz.timezone(TIMEZONE)
+        manualTimezone = pytz.timezone(self.__timezone)
         l_now = datetime.now(manualTimezone)
 
         if count > 0:
@@ -588,7 +587,7 @@ class MyTelegramSrv(object):
                     "chat_id": chat_id,
                     "data": args_word,
                     "timestamp": l_currntT,
-                    "timezone": TIMEZONE
+                    "timezone": self.__timezone
                 }
                 # response message after we figure out the requestion
                 self.__pushToQueueReq(l_dict, important=False)
@@ -614,7 +613,7 @@ class MyTelegramSrv(object):
                     "chat_id": chat_id,
                     "data": args_word,
                     "timestamp": l_currntT,
-                    "timezone": TIMEZONE
+                    "timezone": self.__timezone
                 }
                 # response message after we figure out the requestion
                 self.__pushToQueueReq(l_dict, important=False)
@@ -640,7 +639,7 @@ class MyTelegramSrv(object):
                     "chat_id": chat_id,
                     "data": args_word,
                     "timestamp": l_currntT,
-                    "timezone": TIMEZONE
+                    "timezone": self.__timezone
                 }
                 # response message after we figure out the requestion
                 self.__pushToQueueReq(l_dict, important=False)
@@ -666,7 +665,7 @@ class MyTelegramSrv(object):
                     "chat_id": chat_id,
                     "data": args_word,
                     "timestamp": l_currntT,
-                    "timezone": TIMEZONE
+                    "timezone": self.__timezone
                 }
                 # response message after we figure out the requestion
                 self.__pushToQueueReq(l_dict, important=False)
@@ -692,7 +691,7 @@ class MyTelegramSrv(object):
                     "chat_id": chat_id,
                     "data": args_word,
                     "timestamp": l_currntT,
-                    "timezone": TIMEZONE
+                    "timezone": self.__timezone
                 }
                 # response message after we figure out the requestion
                 self.__pushToQueueReq(l_dict, important=False)
@@ -718,7 +717,7 @@ class MyTelegramSrv(object):
                     "chat_id": chat_id,
                     "data": args_word,
                     "timestamp": l_currntT,
-                    "timezone": TIMEZONE
+                    "timezone": self.__timezone
                 }
                 # response message after we figure out the requestion
                 self.__pushToQueueReq(l_dict, important=False)
