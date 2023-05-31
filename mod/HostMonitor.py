@@ -201,15 +201,15 @@ class MyHostSrv(object):
                 continue
 
             n_internal_ip = line.find('internal_ip=')
-            if n_internal_ip > 0 and l_internal_ip[0] is False:
+            if n_internal_ip >= 0 and l_internal_ip[0] is False:
                 l_internal_ip[0] = True
-                l_internal_ip[1] = "{}".format(line[n_internal_ip:])
+                l_internal_ip[1] = "{}".format(line[n_internal_ip+13:])
                 continue
 
             n_external_ip = line.find('external_ip=')
-            if n_external_ip > 0 and l_external_ip[0] is False:
+            if n_external_ip >= 0 and l_external_ip[0] is False:
                 l_external_ip[0] = True
-                l_external_ip[1] = "{}".format(line[n_external_ip:])
+                l_external_ip[1] = "{}".format(line[n_external_ip+13:])
                 continue
 
         l_feedback = {
