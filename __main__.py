@@ -69,15 +69,15 @@ if __name__ == "__main__":
     print('working folder is:' + python_working_place)
 
     # Initial all option from configuration file (*.yaml)
-    thisfile_working_path = os.path.dirname(os.path.abspath(__file__))
-    with open("{}/config.yaml".format(thisfile_working_path), "r", encoding="utf-8") as f:
+    project_working_folder = os.path.dirname(os.path.abspath(__file__))
+    with open("{}/config.yaml".format(project_working_folder), "r", encoding="utf-8") as f:
         yaml_data = yaml.safe_load(f)
 
     # global var.
     global TelegramRobot
     
     # Telegram Robot setting
-    TelegramRobot = MyTelegramSrv(logger, isStopSys, yaml_data)
+    TelegramRobot = MyTelegramSrv(logger, isStopSys, project_working_folder, yaml_data)
     K8sHost = MyHostSrv(logger)
     SendMessager = MySendTools(logger)
 

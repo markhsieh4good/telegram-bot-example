@@ -34,7 +34,7 @@ import time
 BINANCE, TELEGRAM, AREA, MARKET = range(4)
 
 class MyTelegramSrv(object):
-    def __init__(self, logger, is_stop_system, configuration) -> None:
+    def __init__(self, logger, is_stop_system, working_folder, configuration) -> None:
         super().__init__()
 
         # parse to local value
@@ -82,7 +82,8 @@ class MyTelegramSrv(object):
 
         # 把Hello語錄檔案載入
         self.__sentences = []
-        l_directory = os.getcwd().replace('\\', '/')
+        # l_directory = os.getcwd().replace('\\', '/')
+        l_directory = working_folder
         self.logger.info("loaded sentences from: {} to {}".format(l_directory, '/resrc/sentence/hello.txt'))
         if os.path.exists(l_directory + '/resrc/sentence/hello.txt'):
             _FILE = open(l_directory + '/resrc/sentence/hello.txt')
