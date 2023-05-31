@@ -15,3 +15,4 @@ pipenv install --three python-telegram-bot flask gunicorn requests beautifulsoup
 pip3.10 install python-telegram-bot
 pip3.10 install pytz
 pip3.10 install pyyaml
+pip3.10 install psutil

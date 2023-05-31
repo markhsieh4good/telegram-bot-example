@@ -65,11 +65,12 @@ def signal_handler(signum, frame):
 if __name__ == "__main__":
     logger.info('Wellcome into the remote control service.')
 
-    current_working_directory = os.getcwd()
-    print('working folder is:' + current_working_directory)
+    python_working_place = os.getcwd()
+    print('working folder is:' + python_working_place)
 
     # Initial all option from configuration file (*.yaml)
-    with open("config.yaml", "r", encoding="utf-8") as f:
+    thisfile_working_path = os.path.dirname(os.path.abspath(__file__))
+    with open("{}/config.yaml".format(thisfile_working_path), "r", encoding="utf-8") as f:
         yaml_data = yaml.safe_load(f)
 
     # global var.
