@@ -10,7 +10,7 @@ whisp_chat_id: "626778001"
 # Fill with refresh seconds
 refresh_seconds: 0.1
 
-version: "v1.2.0-20221208"
+version: "v1.0.0-20230531"
 
 timezone: "Asia/Taipei"
 

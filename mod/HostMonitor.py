@@ -182,8 +182,10 @@ class MyHostSrv(object):
             result = "SubprocessError"
 
         if not returned_value:
+            return_msg = []
             message.append("system call [{}] fail.".format(command))
         else:
+            return_msg = returned_value.stdout
             message.append("{}:".format(returned_value.returncode))
             message.append("{}".format(returned_value.stderr))
 
