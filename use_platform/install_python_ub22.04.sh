@@ -12,7 +12,8 @@ fi
 
 pip3.10 install pipenv
 pipenv install --three python-telegram-bot flask gunicorn requests beautifulsoup4 bs4 chardet decorator idna peewee py
-pip3.10 install python-telegram-bot
+## ref.: https://stackoverflow.com/a/74994229
+pip3.10 install python-telegram-bot==13.7
 pip3.10 install pytz
 pip3.10 install pyyaml
 pip3.10 install psutil
