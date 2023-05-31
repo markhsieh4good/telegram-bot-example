@@ -25,8 +25,7 @@ class MyHostSrv(object):
         self.__system_info = { 
             "cpu": "0%",
             "memory": "0 MB free / 0 MB total ( 100% )",
-            "disk": "0 GB free / 0 GB total ( 100% )",
-            "ip": "168.95.0.1, 192.168.0.1"
+            "disk": "0 GB free / 0 GB total ( 100% )"
             }
 
         self.logger.info("{} already loaded finish.".format(__name__))
@@ -162,7 +161,7 @@ class MyHostSrv(object):
         self.__system_info.update({"disk": disk_info})
 
         # command
-        command = "bash /usr/local/bin/get_ip 3>&1 "
+        command = "bash /usr/local/bin/get_ip 3>&1 2>/dev/null"
         message = []
         result = "success"
         returned_value = {}
