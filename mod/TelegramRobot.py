@@ -9,6 +9,7 @@ import random
 import re
 from datetime import datetime
 import pytz
+import signal
 
 # import telegram
 ## api
@@ -43,7 +44,7 @@ with open("config.yaml", "r", encoding="utf-8") as f:
 BINANCE, TELEGRAM, AREA, MARKET = range(4)
 
 class MyTelegramSrv(object):
-    def __init__(self, logger, stop_system) -> None:
+    def __init__(self, logger, is_stop_system) -> None:
         super().__init__()
         header = {"Authorization": "Telegram Bot Hock: {}".format(BOT_TOKEN)}
         self.__queue_request = None
@@ -78,7 +79,7 @@ class MyTelegramSrv(object):
         # self.__updater.dispatcher.add_handler(handler=CommandHandler('more', self.__more), group=0)
 
         self.logger = logger
-        self.stop_system = stop_system
+        self.is_stop_system = is_stop_system
 
         # 把Hello語錄檔案載入
         self.__sentences = []
@@ -113,13 +114,14 @@ class MyTelegramSrv(object):
         self.__queue_result = queue_res
 
         self.__information()
+        self.__freeAllUpdates() # clean all message from telegram cloud queue
 
         self.__updater.start_polling(
             poll_interval=float(REFRESH_SECONDS), 
             timeout=10)
         self.__updater.idle()
 
-    def stop(self, delay):
+    def __stop(self, delay=0):
         l_start = int(round(time.time()))
         l_end = round(l_start + delay)
         l_run = True
@@ -129,9 +131,13 @@ class MyTelegramSrv(object):
                 l_run = False
             else:
                 time.sleep(0.5)
-        self.stop_system()
+        if self.is_stop_system is False:
+            signal.alarm(signal.SIGINT)
 
-    def release(self):
+    def stop_listen_telegram(self):
+        self.__release()
+
+    def __release(self):
         self.logger.info("{} stoping...".format(__name__))
         try:
             self.__updater.stop()
@@ -149,10 +155,10 @@ class MyTelegramSrv(object):
     #     )
     #     return ConversationHandler.END
 
-    def freeAllUpdates(self):
+    def __freeAllUpdates(self):
         self.__getAllUpdates2Release()
 
-    def isRunning(self):
+    def __isRunning(self):
         return self.__updater.running
 
     def sendMessageByURL(self, chat_id, message):
@@ -161,7 +167,7 @@ class MyTelegramSrv(object):
     def __sendMessageToTypicalChat(self, chat_id, message):
         # TODO: add a function to set Typical Chat ID
         # use group char id
-        if self.isRunning is False:
+        if self.__isRunning is False:
             pass
         else:
             headers = {
@@ -186,7 +192,7 @@ class MyTelegramSrv(object):
                 self.logger.error("sendMessage fail. {}:{} {}".format(lres.status_code, lres.reason, lres.text))
 
     def __sendPictureToTypicalChat(self, chat_id, path, message):
-        if self.isRunning is False:
+        if self.__isRunning is False:
             pass
         else:
             headers = {
@@ -207,7 +213,7 @@ class MyTelegramSrv(object):
                 self.logger.error("sendMessage fail. {}:{} {}".format(lres.status_code, lres.reason, lres.text))
 
     def __sendAudioToTypicalChat(self, chat_id, path):
-        if self.isRunning is False:
+        if self.__isRunning is False:
             pass
         else:
             headers = {
@@ -227,7 +233,7 @@ class MyTelegramSrv(object):
                 self.logger.error("sendMessage fail. {}:{} {}".format(lres.status_code, lres.reason, lres.text))
 
     def __sendVideoToTypicalChat(self, chat_id, path):
-        if self.isRunning is False:
+        if self.__isRunning is False:
             pass
         else:
             headers = {
@@ -249,7 +255,7 @@ class MyTelegramSrv(object):
     def __getAllUpdates2Release(self):
         # TODO: add a function to set Typical Chat ID
         # use group char id
-        if self.isRunning is False:
+        if self.__isRunning is False:
             pass
         else:
             headers = {
@@ -563,7 +569,7 @@ class MyTelegramSrv(object):
             self.sendMessageByURL(chat_id, l_dict)
             update.callback_query.edit_message_text('ok i got it. please wait for updating ... TG bot')
 
-            self.stop(3) # stop system after 3 sec.
+            self.__stop(3) # stop system after 3 sec.
         else:
             update.callback_query.edit_message_text("Who are you? I don't service unknown.")
 

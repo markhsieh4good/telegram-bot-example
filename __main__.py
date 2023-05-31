@@ -4,6 +4,7 @@
 import sys
 import logging
 import os, signal
+import datetime
 
 from threading import Thread
 from threading import Event
@@ -26,8 +27,27 @@ logging.basicConfig(
         )
 logger = logging.getLogger(__name__)
 
-# def stop_self():
-#     os.kill(os.getpid(), signal.SIGINT)
+logging.basicConfig(
+                    level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    # Send to file and ttyS0...
+                    handlers=[
+                        # logging.FileHandler("{0}/{1}.log".format(logPath, fileName)),
+                        logging.StreamHandler(sys.stdout)
+                    ]
+        )
+logger = logging.getLogger(__name__)
+
+def cb(msg:dict):
+    chat_id = msg["chat_id"]
+    del msg["chat_id"]
+    TelegramRobot.sendMessageByURL(chat_id, msg)
+
+def stop_self():
+    os.kill(os.getpid(), signal.SIGINT)
+
+def isStopSys():
+    return StopSys
 
 def signal_handler(signum, frame):
     logger.warning('signal_handler: caught signal ' + str(signum))
@@ -41,8 +61,17 @@ def signal_handler(signum, frame):
     elif signum == signal.SIGABRT.value:
         print('... SIGABRT')
         StopSys = True
+    elif signum == signal.SIGALRM.value:
+        print('... SIGALRM')
+        StopSys = False
     else:
         print('???')
+
+    if StopSys:
+        logging.info("Signal : '{}' Received. Handler Executed @ {}".format(signal.strsignal(signum), datetime.now()))
+        TelegramRobot.stop_listen_telegram()
+    else:
+        print('just alarm for test')
     
 if __name__ == "__main__":
    logger.info('Wellcome into the remote control service.')
@@ -51,7 +80,7 @@ if __name__ == "__main__":
     global TelegramRobot
     
     # Telegram Robot setting
-    TelegramRobot = MyTelegramSrv(logger, stop_self)
+    TelegramRobot = MyTelegramSrv(logger, isStopSys)
     K8sHost = MyBtcSrv(logger)
     SendMessager = MySendTools(logger)
 
@@ -59,6 +88,14 @@ if __name__ == "__main__":
     # app.run(debug=True)
     req_q = MyQueue(logger, size=30, high_permission_has=0.25)
     res_q = MyQueue(logger, size=30, high_permission_has=0) # result order is base on request.
+
+    # system signal reader
+    signal.signal(signal.SIGALRM, signal_handler)
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGABRT, signal_handler)
+    signal.alarm(signal.SIGALRM)
+    time.sleep(2)
 
     # queue link with ...
     # telegram bot [push]--(request queue)-->[pop] btc robot
@@ -80,9 +117,9 @@ if __name__ == "__main__":
         name="SendMessageCommunicateThread")
     SendMessageThread.start()
 
-    TelegramRobot.freeAllUpdates()
+    # TelegramRobot.freeAllUpdates()
     TelegramRobot.start(req_q, res_q) # until receive system signal.
-    TelegramRobot.release()
+    TelegramRobot.stop_listen_telegram() # 再次檢查
 
     SendMessageStopEvent.set()
     SendMessageThread.join()
