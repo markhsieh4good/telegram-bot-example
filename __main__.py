@@ -78,7 +78,7 @@ if __name__ == "__main__":
     
     # Telegram Robot setting
     TelegramRobot = MyTelegramSrv(logger, isStopSys, yaml_data)
-    K8sHost = MyBtcSrv(logger)
+    K8sHost = MyHostSrv(logger)
     SendMessager = MySendTools(logger)
 
     # Running server
