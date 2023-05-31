@@ -74,7 +74,7 @@ def signal_handler(signum, frame):
         print('just alarm for test')
     
 if __name__ == "__main__":
-   logger.info('Wellcome into the remote control service.')
+    logger.info('Wellcome into the remote control service.')
 
     # global var.
     global TelegramRobot
