@@ -162,9 +162,10 @@ class MyHostSrv(object):
         self.__system_info.update({"disk": disk_info})
 
         # command
-        command = "bash ./get_ip.sh "
+        command = "bash /usr/local/bin/get_ip "
         message = []
         result = "success"
+        returned_value = {}
         try:
             returned_value = subprocess.run( 
                 command, shell=True, check=True, 
@@ -180,8 +181,11 @@ class MyHostSrv(object):
             message.append(str(e))
             result = "SubprocessError"
 
-        message.append("{}:".format(returned_value.returncode))
-        message.append("{}".format(returned_value.stderr))
+        if not returned_value:
+            message.append("system call [{}] fail.".format(command))
+        else:
+            message.append("{}:".format(returned_value.returncode))
+            message.append("{}".format(returned_value.stderr))
 
         l_internal_ip = [ False, "None" ]
         l_external_ip = [ False, "None" ]
@@ -219,6 +223,7 @@ class MyHostSrv(object):
         command = "sudo reboot "
         message = []
         result = "success"
+        returned_value = {}
         try:
             returned_value = subprocess.run( 
                 command, shell=True, check=True, 
@@ -234,8 +239,11 @@ class MyHostSrv(object):
             message.append(str(e))
             result = "SubprocessError"
 
-        message.append("{}:".format(returned_value.returncode))
-        message.append("{}".format(returned_value.stderr))
+        if not returned_value:
+            message.append("system call [{}] fail.".format(command))
+        else:
+            message.append("{}:".format(returned_value.returncode))
+            message.append("{}".format(returned_value.stderr))
 
         l_feedback = {
             "system_feedback": message,
@@ -250,6 +258,7 @@ class MyHostSrv(object):
         # command
         command = "sudo kubectl get pod -A | grep -E 'NAMESPACE|business|mq|test'"
         message = []
+        return_msg = []
         result = "success"
         try:
             returned_value = subprocess.run( 
@@ -266,11 +275,15 @@ class MyHostSrv(object):
             message.append(str(e))
             result = "SubprocessError"
 
-        # print("os return: {}".format(returned_value))
-        return_msg = returned_value.stdout
-        # print("system call return: {}".format(return_msg))
-        message.append("{}:".format(returned_value.returncode))
-        message.append("{}".format(returned_value.stderr))
+        if not returned_value:
+            return_msg.append("None")
+            message.append("system call [{}] fail.".format(command))
+        else:
+            # print("os return: {}".format(returned_value))
+            return_msg.append(returned_value.stdout)
+            # print("system call return: {}".format(return_msg))
+            message.append("{}:".format(returned_value.returncode))
+            message.append("{}".format(returned_value.stderr))
 
         # last order
         # FIXME
@@ -313,7 +326,13 @@ class MyHostSrv(object):
             message.append(str(e))
             result = "SubprocessError"
 
-        return_msg.append(returned_value.stdout)
+        if not returned_value:
+            return_msg.append("None")
+            message.append("system call [{}] fail.".format(command))
+        else:
+            return_msg.append(returned_value.stdout)
+            message.append("{}:".format(returned_value.returncode))
+            message.append("{}".format(returned_value.stderr))
 
         l_feedback = {
             "system_feedback": message,

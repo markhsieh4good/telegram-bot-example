@@ -28,6 +28,8 @@ $ python3 telegram-bot
 $ sudo apt install -y supervisor
 $ sudo mkdir -p /opt/supervisor.p/logs
 $ sudo ln -s /path/to/repo/telegram-bot /opt/supervisor.p/
+$ sudo chmod +x /opt/supervisor.p/telegram-bot/get_ip.sh
+$ sudo ln -s /opt/supervisor.p/telegram-bot/get_ip.sh /usr/local/bin/get_ip
 
 $ sudo cp telegram-bot/use_platform/supervisor.4.2.1.conf /etc/supervisor/supervisord.conf
 $ sudo cp telegram-bot/use_platform/tg-bot.conf /etc/supervisor/conf.d/
