@@ -17,7 +17,7 @@ from telegram import Update, Bot
 from telegram.ext import Updater, MessageHandler
 from telegram.ext import CallbackContext, CommandHandler
 from telegram.ext import CallbackQueryHandler
-from telegram.ext import ConversationHandler, Filters
+from telegram.ext import ConversationHandler
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 # Load data from config.ini file
