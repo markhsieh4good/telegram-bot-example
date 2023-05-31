@@ -65,9 +65,8 @@ class MyTelegramSrv(object):
         self.__updater.dispatcher.add_handler(handler=CommandHandler('help', self.__help, pass_update_queue=True, pass_job_queue=True, pass_user_data=True), group=0)
 
         self.__updater.dispatcher.add_handler(handler=CommandHandler('status', self.__status), group=0)
-        self.__updater.dispatcher.add_handler(handler=CommandHandler('latest', self.__latest), group=0)
-        self.__updater.dispatcher.add_handler(handler=CommandHandler('stop', self.__stop), group=0)
-        self.__updater.dispatcher.add_handler(handler=CommandHandler('start', self.__start), group=0)
+        self.__updater.dispatcher.add_handler(handler=CommandHandler('k8s', self.__k8s), group=0)
+
         self.__updater.dispatcher.add_handler(handler=CommandHandler('restart', self.__restart), group=0)
 
         # self.__updater.dispatcher.add_handler(handler=CommandHandler('update', self.__upgrade), group=0)
@@ -76,27 +75,7 @@ class MyTelegramSrv(object):
 
         self.__updater.dispatcher.add_handler(handler=CallbackQueryHandler(self.__press_button_callback))
 
-        self.__updater.dispatcher.add_handler(handler=CommandHandler('more', self.__more), group=0)
-        # Add conversation handler with the states GENDER, PHOTO, LOCATION and BIO
-        # self.__conv_handler = ConversationHandler(
-        #     entry_points=[CommandHandler('more', self.__more)],
-        #     states={
-        #         BINANCE: [MessageHandler(filters=Filters.text, callback=self.__update_binance)],
-        #         TELEGRAM: [MessageHandler(filters=Filters.text, callback=self.__update_telegram)],
-        #         AREA: [MessageHandler(filters=Filters.text, callback=self.__renew_mix_node_setting)],
-        #         MARKET: [MessageHandler(filters=Filters.text, callback=self.__renew_contract_limit_setting)]
-        #     },
-        #     fallbacks=[CommandHandler('exit', self.cencel)]
-        # )
-        # self.__updater.dispatcher.add_handler(handler=self.__conv_handler)
-        self.__updater.dispatcher.add_handler(handler=CommandHandler('new_binance', self.__update_binance), group=0)
-        self.__updater.dispatcher.add_handler(handler=CommandHandler('new_this', self.__update_telegram), group=0)
-        self.__updater.dispatcher.add_handler(handler=CommandHandler('set_nodes', self.__renew_mix_node_setting), group=0)
-        self.__updater.dispatcher.add_handler(handler=CommandHandler('set_contract_limit', self.__renew_contract_limit_setting), group=0)
-        self.__updater.dispatcher.add_handler(handler=CommandHandler('set_trade_u2b_onoff', self.__renew_u2b_onoff_setting), group=0)
-        self.__updater.dispatcher.add_handler(handler=CommandHandler('set_trade_b2u_onoff', self.__renew_b2u_onoff_setting), group=0)
-        self.__updater.dispatcher.add_handler(handler=CommandHandler('set_eat_kfc_point', self.__renew_sell_point_setting), group=0)
-        self.__updater.dispatcher.add_handler(handler=CommandHandler('set_force_sell_point', self.__renew_force_sell_point_setting), group=0)
+        # self.__updater.dispatcher.add_handler(handler=CommandHandler('more', self.__more), group=0)
 
         self.logger = logger
         self.stop_system = stop_system
@@ -104,9 +83,9 @@ class MyTelegramSrv(object):
         # 把Hello語錄檔案載入
         self.__sentences = []
         l_directory = os.getcwd().replace('\\', '/')
-        self.logger.info("loaded sentences from: {} to {}".format(l_directory, '/tg-robot/src/sentence/hello.txt'))
-        if os.path.exists(l_directory + '/tg-robot/src/sentence/hello.txt'):
-            _FILE = open(l_directory + '/tg-robot/src/sentence/hello.txt')
+        self.logger.info("loaded sentences from: {} to {}".format(l_directory, '/resrc/sentence/hello.txt'))
+        if os.path.exists(l_directory + '/resrc/sentence/hello.txt'):
+            _FILE = open(l_directory + '/resrc/sentence/hello.txt')
             _LINE = _FILE.readlines()
             for line in _LINE:
                 self.__sentences.append(line)
@@ -171,7 +150,7 @@ class MyTelegramSrv(object):
     #     return ConversationHandler.END
 
     def freeAllUpdates(self):
-        self.__getAllUpdates()
+        self.__getAllUpdates2Release()
 
     def isRunning(self):
         return self.__updater.running
@@ -267,7 +246,7 @@ class MyTelegramSrv(object):
             else:
                 self.logger.error("sendMessage fail. {}:{} {}".format(lres.status_code, lres.reason, lres.text))
 
-    def __getAllUpdates(self):
+    def __getAllUpdates2Release(self):
         # TODO: add a function to set Typical Chat ID
         # use group char id
         if self.isRunning is False:
@@ -363,10 +342,8 @@ class MyTelegramSrv(object):
             message_reply_text = 'I can help you as below, choice one.'
             buttons = [
                 [InlineKeyboardButton("platform Status", callback_data='callback_status')],
-                [InlineKeyboardButton("Latest btc infomation", callback_data='callback_latest')],
-                [InlineKeyboardButton("Stop btc-robot", callback_data='callback_stop')],
-                [InlineKeyboardButton("Start btc-robot", callback_data='callback_start')],
-                [InlineKeyboardButton("Restart btc-robot", callback_data='callback_restart')],
+                [InlineKeyboardButton("k8s pods infomation", callback_data='callback_k8s_monitor')],
+                [InlineKeyboardButton("Restart host", callback_data='callback_restart')],
                 # [InlineKeyboardButton("Update Btc Robot", callback_data='callback_update_btc_robot')],
                 # [InlineKeyboardButton("Update Telegram Robot", callback_data='callback_update_telegram_robot')],
                 # [InlineKeyboardButton("Set Area", callback_data='callback_set_area')],
@@ -404,7 +381,7 @@ class MyTelegramSrv(object):
         count = self.__chatpool.count(chat_id)
         if count > 0:
             l_dict = {
-                "command": "status",
+                "command": "host_status",
                 "chat_id": chat_id,
                 "data": None,
                 "timestamp": l_currntT,
@@ -415,50 +392,14 @@ class MyTelegramSrv(object):
         else:
             update.message.reply_text("Who are you? I don't service unknown.")
 
-    def __latest(self, update: Update, context: CallbackContext):
+    def __k8s(self, update: Update, context: CallbackContext):
         l_currntT = round(time.time()*100)*0.01
 
         chat_id = str(update.message.chat_id)
         count = self.__chatpool.count(chat_id)
         if count > 0:
             l_dict = {
-                "command": "latest",
-                "chat_id": chat_id,
-                "data": None,
-                "timestamp": l_currntT,
-                "timezone": TIMEZONE
-            }
-            # response message after we figure out the requestion
-            self.__pushToQueueReq(l_dict, important=True)
-        else:
-            update.message.reply_text("Who are you? I don't service unknown.")
-
-    def __stop(self, update: Update, context: CallbackContext):
-        l_currntT = round(time.time()*100)*0.01
-
-        chat_id = str(update.message.chat_id)
-        count = self.__chatpool.count(chat_id)
-        if count > 0:
-            l_dict = {
-                "command": "stop",
-                "chat_id": chat_id,
-                "data": None,
-                "timestamp": l_currntT,
-                "timezone": TIMEZONE
-            }
-            # response message after we figure out the requestion
-            self.__pushToQueueReq(l_dict, important=True)
-        else:
-            update.message.reply_text("Who are you? I don't service unknown.")
-
-    def __start(self, update: Update, context: CallbackContext):
-        l_currntT = round(time.time()*100)*0.01
-
-        chat_id = str(update.message.chat_id)
-        count = self.__chatpool.count(chat_id)
-        if count > 0:
-            l_dict = {
-                "command": "start",
+                "command": "k8s_monitor",
                 "chat_id": chat_id,
                 "data": None,
                 "timestamp": l_currntT,
@@ -476,7 +417,7 @@ class MyTelegramSrv(object):
         count = self.__chatpool.count(chat_id)
         if count > 0:
             l_dict = {
-                "command": "restart",
+                "command": "host_restart",
                 "chat_id": chat_id,
                 "data": None,
                 "timestamp": l_currntT,
@@ -487,47 +428,32 @@ class MyTelegramSrv(object):
         else:
             update.message.reply_text("Who are you? I don't service unknown.")
 
-    def __upgrade(self, update: Update, context: CallbackContext):
-        l_currntT = round(time.time()*100)*0.01
+    # def __upgrade(self, update: Update, context: CallbackContext):
+    #     l_currntT = round(time.time()*100)*0.01
 
-        chat_id = str(update.message.chat_id)
-        count = self.__chatpool.count(chat_id)
-        if count > 0:
-            # l_dict = {
-            #     "command": "update_btc_robot",
-            #     "chat_id": chat_id,
-            #     "data": None,
-            #     "timestamp": l_currntT,
-            #     "timezone": TIMEZONE
-            # }
-            # # response message after we figure out the requestion
-            # self.__pushToQueueReq(l_dict, important=False)
-            # TODO: virtual button select INF.
-            message_reply_text = 'I can help you as below, choice one.'
-            buttons = [
-                [InlineKeyboardButton("update BTC Robot", callback_data='update_btc_robot')],
-                [InlineKeyboardButton("update Telegram Robot", callback_data='update_telegram_robot')]
-            ]
-            keyboard = InlineKeyboardMarkup(buttons)
-            update.message.reply_text(message_reply_text, reply_markup=keyboard)
-        else:
-            update.message.reply_text("Who are you? I don't service unknown.")
+    #     chat_id = str(update.message.chat_id)
+    #     count = self.__chatpool.count(chat_id)
+    #     if count > 0:
+    #         message_reply_text = 'I can help you as below, choice one.'
+    #         buttons = [
+    #             [InlineKeyboardButton("update BTC Robot", callback_data='update_btc_robot')],
+    #             [InlineKeyboardButton("update Telegram Robot", callback_data='update_telegram_robot')]
+    #         ]
+    #         keyboard = InlineKeyboardMarkup(buttons)
+    #         update.message.reply_text(message_reply_text, reply_markup=keyboard)
+    #     else:
+    #         update.message.reply_text("Who are you? I don't service unknown.")
 
-    def __more(self, update: Update, context: CallbackContext):
-        update.message.reply_text("[ /new_binance VERSION ] update the binance rebot to VERSION \n"
-                                + "[ /new_this] update the telegram rebot to the newest \n"
-                                + "[ /set_nodes VALUE ] re-define area range \n"
-                                + "[ /set_contract_limit VALUE ] re-define market per contract"
-                                + "[ /set_trade_u2b_onoff VALUE ] start/stop use USDT to buy BTC \n"
-                                + "[ /set_trade_b2u_onoff VALUE ] start/stop sell BTC to be USDT \n"
-                                + "[ /set_eat_kfc_point VALUE ] In the node, compare the purchase price of BTC, how much it can be sold if it rises \n"
-                                + "[ /set_force_sell_point VALUE ] In the node, compare the purchase price of BTC, how much it falls to force selling \n")
+    # def __more(self, update: Update, context: CallbackContext):
+    #     update.message.reply_text("[ /new_binance VERSION ] update the binance rebot to VERSION \n"
+    #                             + "[ /new_this] update the telegram rebot to the newest \n"
+    #                             + "[ /set_nodes VALUE ] re-define area range \n"
+    #                             + "[ /set_contract_limit VALUE ] re-define market per contract"
+    #                             + "[ /set_trade_u2b_onoff VALUE ] start/stop use USDT to buy BTC \n"
+    #                             + "[ /set_trade_b2u_onoff VALUE ] start/stop sell BTC to be USDT \n"
+    #                             + "[ /set_eat_kfc_point VALUE ] In the node, compare the purchase price of BTC, how much it can be sold if it rises \n"
+    #                             + "[ /set_force_sell_point VALUE ] In the node, compare the purchase price of BTC, how much it falls to force selling \n")
 
-        # update.message.reply_text("Type the tag or number you want to edit with:",
-        #     reply_markup=ReplyKeyboardMarkup(
-        #         reply_keyboard, one_time_keyboard=True, input_field_placeholder="Boy or Girl?"
-        #     ))
-        # return MARKET
 
     def __press_button_callback(self, update: Update, context: CallbackContext):
         try:
@@ -538,22 +464,18 @@ class MyTelegramSrv(object):
         except Exception as e:
             print(e)
 
-        l_ugly_help_list = ['callback_status', 'callback_latest', 'callback_stop', 'callback_start', 'callback_restart', 'callback_more'] 
+        l_ugly_help_list = ['callback_status', 'callback_k8s_monitor', 'callback_stop', 'callback_start', 'callback_restart', 'callback_more'] 
         # , "callback_update_btc_robot", "callback_update_telegram_robot","callback_set_area","callback_set_market"]
 
         command = ""
 
         if answer in l_ugly_help_list:
             if answer == 'callback_status':
-                command = "status"
-            elif answer == 'callback_latest':
-                command = "latest"
-            elif answer == 'callback_stop':
-                command = "stop"
-            elif answer == 'callback_start':
-                command = "start"
+                command = "host_status"
+            elif answer == 'callback_k8s_monitor':
+                command = "k8s_monitor"
             elif answer == 'callback_restart':
-                command = "restart"
+                command = "host_restart"
             elif answer == 'callback_more':
                 command = "more"
             # elif answer == "callback_update_btc_robot":

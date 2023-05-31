@@ -115,9 +115,9 @@ class MyHostSrv(object):
             l_result, l_feedback = self.__monitorK8s()
         elif l_command == "host_restart":
             l_result, l_feedback = self.__restart()
-        elif l_command == "update_telegram_robot":
-            # this is one way trip ...
-            l_result, l_feedback = self.__update_telegram()
+        # elif l_command == "update_telegram_robot":
+        #     # this is one way trip ...
+        #     l_result, l_feedback = self.__update_telegram()
         else:
             l_result = "There are plans, but not yet supported."
             l_feedback = {
@@ -248,7 +248,7 @@ class MyHostSrv(object):
 
     def __monitorK8s(self):
         # command
-        command = "sudo kubectl get pod -A"
+        command = "sudo kubectl get pod -A | grep -E 'NAMESPACE|business|mq|test'"
         message = []
         result = "success"
         try:

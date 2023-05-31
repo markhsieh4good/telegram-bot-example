@@ -50,7 +50,7 @@ if __name__ == "__main__":
     
     # Telegram Robot setting
     TelegramRobot = MyTelegramSrv(logger, stop_self)
-    BtcRobot = MyBtcSrv(logger)
+    K8sHost = MyBtcSrv(logger)
     SendMessager = MySendTools(logger)
 
     # Running server
@@ -62,20 +62,20 @@ if __name__ == "__main__":
     # telegram bot [push]--(request queue)-->[pop] btc robot
     # btc robot [push]--(result queue)-->[pop] telegram bot
 
-    # Btc-Robot listener
-    BtcRobotStopEvent = Event()
-    BtcRobotThread = Thread(
-        target=BtcRobot.run, 
-        args=(BtcRobotStopEvent, req_q, res_q), 
-        name="BtcRobotCommunicateThread")
-    BtcRobotThread.start()
+    # K8s Host listener
+    K8sHostStopEvent = Event()
+    K8sHostThread = Thread(
+        target=K8sHost.run, 
+        args=(K8sHostStopEvent, req_q, res_q), 
+        name="K8sHostCommunicateThread")
+    K8sHostThread.start()
 
     # Send Message listener
     SendMessageStopEvent = Event()
     SendMessageThread = Thread(
         target=SendMessager.run, 
         args=(SendMessageStopEvent, req_q, res_q, cb), 
-        name="BtcRobotCommunicateThread")
+        name="SendMessageCommunicateThread")
     SendMessageThread.start()
 
     TelegramRobot.freeAllUpdates()
@@ -85,8 +85,8 @@ if __name__ == "__main__":
     SendMessageStopEvent.set()
     SendMessageThread.join()
 
-    BtcRobotStopEvent.set()
-    BtcRobotThread.join()
+    K8sHostStopEvent.set()
+    K8sHostThread.join()
 
     req_q.clean()
     res_q.clean()
