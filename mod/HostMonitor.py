@@ -266,9 +266,9 @@ class MyHostSrv(object):
         return_msg = []
         result = "success"
         try:
-            returned_value = subprocess.run( 
-                command, shell=True, check=True, 
-                capture_output=True, text=True,
+            returned_value = subprocess.check_output( 
+                command, shell=True, # check=True, 
+                text=True, #capture_output=True, 
                 ) #stdout=subprocess.DEVNULL)
         except subprocess.CalledProcessError as e:
             message.append(str(e))
@@ -280,15 +280,16 @@ class MyHostSrv(object):
             message.append(str(e))
             result = "SubprocessError"
 
-        if not returned_value:
+        if result != "success":
             return_msg.append("None")
             message.append("system call [{}] fail.".format(command))
         else:
             # print("os return: {}".format(returned_value))
-            return_msg.append(returned_value.stdout)
+            return_msg.append(returned_value)
             # print("system call return: {}".format(return_msg))
-            message.append("{}".format(returned_value.returncode))
-            message.append("{}".format(returned_value.stderr))
+            # message.append("{}".format(returned_value.returncode))
+            # message.append("{}".format(returned_value.stderr))
+            message.append("pass")
 
         # last order
         # FIXME
@@ -297,7 +298,7 @@ class MyHostSrv(object):
         l_feedback = {
             "system_feedback": message,
             "response": {
-                "response": return_msg
+                "data": return_msg
             }
         }
 
@@ -342,7 +343,7 @@ class MyHostSrv(object):
         l_feedback = {
             "system_feedback": message,
             "response": {
-                "response": return_msg,
+                "data": return_msg,
                 "version": "{}".format(data)
             }
         }
