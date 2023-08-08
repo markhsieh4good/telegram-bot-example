@@ -14,6 +14,14 @@ $ vim config.yaml
 ```
 關於和 telegram bot 連線的方式都在此處
 
+# 環境＆模組
+參考 use_platform/ <br/>
+- install_python_ub22.04.sh
+- requirements.txt
+
+可以用 bash file 安裝，這是我的安裝成功步驟記錄 <br/>
+也可以利用 pip3.10 install -r requirements.txt
+
 # 執行
 > python3 
 ```bash
