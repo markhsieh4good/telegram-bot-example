@@ -1,11 +1,12 @@
 
 # Fill with your bot token
 # Create your bot by sending commands to @BotFather in Telegram
-bot_token: "5741235458:AAHDcNdzR5fEnXgKoW9-xcEtAyKa9-KKFFk"
+# The following text and numbers are fake data for illustration
+bot_token: "1234567890:AAHDcNdzR5fEnXgKoW9-xcEtAyKa9-KKFFk"
 
-group_chat_id: "-896957151"
+group_chat_id: "-896957154"
 
-whisp_chat_id: "626778001"
+whisp_chat_id: "626778071"
 
 # Fill with refresh seconds
 refresh_seconds: 0.1
